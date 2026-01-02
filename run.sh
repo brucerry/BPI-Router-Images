@@ -58,10 +58,10 @@ time {
     echo "imgfile=$uboot" >> $conffile
     echo "kernelfile=$kernel" >> $conffile
     echo "userpackages=\"ethtool iperf3 tcpdump vim git tig mtd-utils memtester file pciutils usbutils traceroute net-tools psmisc wget curl fdisk ack bridge-utils wpasupplicant isc-dhcp-client man tshark mmc-utils\"" >> $conffile
-    "########################################################"
-    "$conffile:"
-    ""
+    echo "########################################################"
+    echo "$conffile:"
+    echo ""
     cat $conffile
-    "########################################################"
+    echo "########################################################"
     ./buildimg.sh $model $distro
 }
