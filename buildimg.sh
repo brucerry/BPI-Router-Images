@@ -34,6 +34,7 @@ if [ ${PACKAGE_Error} == 1 ]; then exit 1; fi
 LDEV=`sudo losetup -f`
 
 function cleanup() {
+	sudo umount mnt/BPI-ROOT/proc
 	sudo umount mnt/BPI-BOOT
 	sudo umount mnt/BPI-ROOT
 	sudo losetup -d $1
@@ -71,7 +72,7 @@ if [[ -z "${kernelfile}" ]];then
 else
 	kernel=$(echo ${kernelfile}|sed -e 's/^.*_\(.*\).tar.gz/\1/')
 fi
-newimgfile=${board}_${distro}_${kernel}_${device}.img.gz
+newimgfile=${variant:-$board}_${distro}_${kernel}_${device}.img.gz
 
 cp $imgfile $newimgfile
 echo "unpack imgfile ($newimgfile)..."
@@ -132,6 +133,7 @@ fi
 echo "configure rootfs for ${board}..."
 
 targetdir="mnt/BPI-ROOT"
+sudo mount -o bind /proc $targetdir/proc
 
 sudo chroot $targetdir tee "/etc/fstab" > /dev/null <<EOF
 # <file system>		<dir>	<type>	<options>		<dump>	<pass>
@@ -245,10 +247,13 @@ if [[ ${board} != "bpi-r2pro" ]];then
 		download_firmware $targetdir mediatek/mt7988/i2p5ge-phy-pmb.bin
 		download_firmware $targetdir aeonsemi/as21x1x_fw.bin
 		sudo ls -lRh $fwdir
-		#changes for 2.5g phy and R4Pro variant
-		echo "# is2g5=1" | sudo tee -a mnt/BPI-BOOT/${ubootconfigdir}/${ubootconfig}
-		echo "# isr4pro=1" | sudo tee -a mnt/BPI-BOOT/${ubootconfigdir}/${ubootconfig}
-		echo "# isr4lite=1" | sudo tee -a mnt/BPI-BOOT/${ubootconfigdir}/${ubootconfig}
+		#changes for 2.5g phy and R4Pro/R4Lite variant
+		if [[ "$variant" == "bpi-r4-2g5" ]];then pfx=""; else pfx="# "; fi
+		echo "${pfx}is2g5=1" | sudo tee -a mnt/BPI-BOOT/${ubootconfigdir}/${ubootconfig}
+		if [[ "$variant" == "bpi-r4pro" ]];then pfx=""; else pfx="# "; fi
+		echo "${pfx}isr4pro=1" | sudo tee -a mnt/BPI-BOOT/${ubootconfigdir}/${ubootconfig}
+		if [[ "$variant" == "bpi-r4lite" ]];then pfx=""; else pfx="# "; fi
+		echo "${pfx}isr4lite=1" | sudo tee -a mnt/BPI-BOOT/${ubootconfigdir}/${ubootconfig}
 		echo "# mtk-2p5ge" | sudo tee -a ${targetdir}/etc/modules
 	fi
 fi

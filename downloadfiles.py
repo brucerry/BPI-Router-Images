@@ -91,7 +91,7 @@ def getUbootInfo():
                 else:
                     ubootfiles[board_][device_]["bl2"]={"name":ufname,"url":ufurl}
             elif ufname.endswith("bl2.img"):
-                print(ufname)
+                #print(ufname)
                 if not "bl2" in ubootfiles[board_][device_]:
                     ubootfiles[board_][device_]["bl2"]={}
                 if "8GB" in ufname:
@@ -149,7 +149,7 @@ def getKernelInfo():
     return kfiles
 
 kfiles=getKernelInfo()
-#print("files:",json.dumps(kfiles,indent=2))
+print("kernel-files:",json.dumps(kfiles,indent=2))
 
 def getBinInfo():
     bin_releases_url="https://api.github.com/repos/frank-w/arm-crosscompile/releases"
@@ -199,12 +199,15 @@ print("initfiles:",ifiles)
 ufile=None
 kfile=None
 
-if board and board in ubootfiles:
-    #ufile=ubootfiles[board]
-    ufile=ubootfiles[board][device] #={"bl2":{"name":ufname,"url":ufurl}}
+variant = config.get("variant")
 
+if variant and variant in ubootfiles and device in ubootfiles[variant]:
+    ufile=ubootfiles[variant][device]
+elif board and board in ubootfiles:
+    ufile=ubootfiles[board][device]
 
-    print(f"board:{board} ubootfile: {ufile}")
+if ufile:
+    print(f"board:{board} variant:{variant} ubootfile: {ufile}")
     if kernel:
         if kernel+"-main" in kfiles:
             b=board
@@ -231,11 +234,11 @@ if not config.get("skipubootdownload") and ufile:
             download(ufile.get("url"),fname)
             newconfig["imgfile"]=fname
     elif device in ['spim-nand','nor']:
-        bl2=ufile.get("bl2")
+        #bl2=ufile.get("bl2")
         fip=ufile.get("fip")
-        if bl2:
-            download(bl2.get("url"),bl2.get("name"))
-            newconfig["bl2file"]=bl2.get("name")
+        #if bl2:
+        #    download(bl2.get("url"),bl2.get("name"))
+        #    newconfig["bl2file"]=bl2.get("name")
         if fip:
             download(fip.get("url"),fip.get("name"))
             newconfig["fipfile"]=fip.get("name")

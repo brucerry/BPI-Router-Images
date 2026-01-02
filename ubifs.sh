@@ -2,6 +2,7 @@
 # some parts are from here: https://github.com/openwrt/openwrt/blob/main/scripts/ubinize-image.sh
 
 board=$1
+kernel=${2:-6.18}
 
 ubivol() {
 	local volid="$1"
@@ -31,7 +32,7 @@ ubivol() {
 rm -r ./ubifs
 mkdir -p ./ubifs/
 
-python3 downloadfiles.py ${board} 6.12 spim-nand
+python3 downloadfiles.py ${board} ${kernel} spim-nand
 
 . sourcefiles_${board}.conf
 
@@ -49,16 +50,16 @@ touch ./ubifs/uEnv.txt
 
 if [[ -n "$variant" ]];then
 	case $variant in
-		"bpi-r3-mini")
+		"bpi-r3mini")
 			#r3mini is not selected via uEnv.txt...uboot is compiled with fixed bootconf
 		;;
 		"bpi-r4-2g5")
 			echo "is2g5=1" > ./ubifs/uEnv.txt
 		;;
-		"bpi-r4-pro")
+		"bpi-r4pro")
 			echo "isR4Pro=1" > ./ubifs/uEnv.txt
 		;;
-		"bpi-r4-lite")
+		"bpi-r4lite")
 			echo "isr4lite=1" > ./ubifs/uEnv.txt
 		;;
 	esac
@@ -69,9 +70,11 @@ if [[ -n "$initrd" ]];then
 		echo "initrd=$initrd" >> ./ubifs/uEnv.txt
 	fi
 fi
+echo
+echo "uEnv.txt (loaded when 'Boot kernel from UBI' is selected in uboot-menu):"
 cat ./ubifs/uEnv.txt
 #cp ${kernelfile} ./ubifs/
-echo $kernelfile
+echo "use kernel from $kernelfile"
 tar -xzf ${kernelfile} --strip-components=1 -C ./ubifs/ --wildcards 'BPI-BOOT/*.itb'
 ls -lh ./ubifs/
 
