@@ -1,6 +1,6 @@
 #!/bin/bash
 localdir=firmware
-folders="aeonsemi airoha mediatek"
+folders="aeonsemi airoha mediatek rtl_nic"
 git clone -n --depth=1 --filter=tree:0 \
   https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git \
   $localdir
